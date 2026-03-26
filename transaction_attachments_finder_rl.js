@@ -152,6 +152,7 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
     // ─── Create contacts and attach to opportunity ───
     const createContactsForOpportunity = (request) => {
         const oppExternalId = request.opportunityExternalId;
+        log.debug('oppExternalId', oppExternalId)
         const contacts = request.contacts || [];
 
         if (!contacts.length) {
