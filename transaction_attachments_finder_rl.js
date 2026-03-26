@@ -214,14 +214,18 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
                     contactRec.setValue({ fieldId: 'mobilephone', value: contact.mobile });
                 }
 
+                const contactId = contactRec.save({ enableSourcing: false, ignoreMandatoryFields: true });
+                const contactRecord = record.load({ type: record.Type.CONTACT, id: contactId, isDynamic: true });
+                log.debug('Loaded Contact', { contactId: contactId });
+
                 // add addresses if provided
                 if (contact.addresses && contact.addresses.length) {
                     contact.addresses.forEach(addr => {
-                        addAddressToContact(contactRec, addr);
+                        addAddressToContact(contactRecord, addr);
                     });
                 }
 
-                const contactId = contactRec.save({ enableSourcing: false, ignoreMandatoryFields: true });
+                const contactId = contactRecord.save({ enableSourcing: false, ignoreMandatoryFields: true });
                 log.debug('Contact Created', { contactId: contactId, name: contact.firstName + ' ' + contact.lastName });
 
                 // attach contact to opportunity
