@@ -3,7 +3,7 @@
  * @NScriptType Restlet
  */
 
-define(['N/search', 'N/file', 'N/log'], (search, file, log) => {
+define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) => {
 
     // ─── existing GET function ───
     const getAttachments = (request) => {
