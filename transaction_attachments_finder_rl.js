@@ -132,10 +132,12 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
             log.debug('POST Request', JSON.stringify(request));
 
             if (request.contactInternalId) {
+                log.debug('Updating Contact')
                 return updateContactAddresses(request);
             }
 
             if (request.opportunityExternalId) {
+                log.debug('Creating Contact')
                 return createContactsForOpportunity(request);
             }
 
