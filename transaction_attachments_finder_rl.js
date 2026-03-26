@@ -314,7 +314,7 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
 
     return {
         get: getAttachments,
-        post: createContactsForOpportunity
+        post: handlePost
     };
 
 });
