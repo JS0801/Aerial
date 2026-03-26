@@ -214,7 +214,7 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
                     contactRec.setValue({ fieldId: 'mobilephone', value: contact.mobile });
                 }
 
-                const contactId = contactRec.save({ enableSourcing: false, ignoreMandatoryFields: true });
+                var contactId = contactRec.save({ enableSourcing: false, ignoreMandatoryFields: true });
                 const contactRecord = record.load({ type: record.Type.CONTACT, id: contactId, isDynamic: true });
                 log.debug('Loaded Contact', { contactId: contactId });
 
@@ -225,7 +225,7 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
                     });
                 }
 
-                const contactId = contactRecord.save({ enableSourcing: false, ignoreMandatoryFields: true });
+                contactId = contactRecord.save({ enableSourcing: false, ignoreMandatoryFields: true });
                 log.debug('Contact Created', { contactId: contactId, name: contact.firstName + ' ' + contact.lastName });
 
                 // attach contact to opportunity
