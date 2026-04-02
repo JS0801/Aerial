@@ -261,7 +261,7 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
     // ─── Update addresses on existing contact ───
     const updateContactAddresses = (request) => {
         const contactId = request.contactInternalId;
-        const addresses = request.contacts || [];
+        const addresses = request.addresses || [];
 
         if (!addresses.length) {
             return { success: false, message: 'contacts (addresses) array is required' };
