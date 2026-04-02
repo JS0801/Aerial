@@ -10,6 +10,8 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
 
         try {
 
+          log.debug('request', request)
+
             const soId = request.tranId;
             log.debug('soId', soId);
 
