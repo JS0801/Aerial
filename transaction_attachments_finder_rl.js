@@ -49,14 +49,10 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
                     })
                 ]
             });
-            log.debug('salesorderSearchObj', salesorderSearchObj);
 
             const searchResultCount = salesorderSearchObj.runPaged().count;
-
-            log.debug('searchResultCount', searchResultCount);
-
+            
             salesorderSearchObj.run().each(result => {
-
                 log.debug('result', result);
 
                 const fileId = result.getValue({
@@ -109,8 +105,8 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
 
                 return true;
             });
-
-            return {
+            log.debug('searchResultCount', searchResultCount);
+            return { 
                 success: true,
                 tranId: soId,
                 count: attachments.length,
