@@ -106,12 +106,12 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
                 return true;
             });
             log.debug('searchResultCount', searchResultCount);
-            return { 
+            return JSON.Stringify({ 
                 success: true,
                 tranId: soId,
                 count: attachments.length,
                 attachments: attachments
-            };
+            });
 
         } catch (e) {
 
