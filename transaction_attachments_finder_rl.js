@@ -51,7 +51,7 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
             });
 
             const searchResultCount = salesorderSearchObj.runPaged().count;
-            
+            log.debug('searchResultCount', searchResultCount);
             salesorderSearchObj.run().each(result => {
                 log.debug('result', result);
 
@@ -105,7 +105,7 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
 
                 return true;
             });
-            log.debug('searchResultCount', searchResultCount);
+            
             return JSON.stringify({ 
                 success: true,
                 tranId: soId,
