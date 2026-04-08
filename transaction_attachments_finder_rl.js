@@ -282,36 +282,58 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
         };
     };
 
-    // ─── Helper: add one address line to contact record ───
-    const addAddressToContact = (contactRec, addr) => {
-        contactRec.selectNewLine({ sublistId: 'addressbook' });
+    
+  const addAddressToContact = (contactRec, addr) => {
+    contactRec.selectNewLine({ sublistId: 'addressbook' });
 
-        if (addr.defaultShipping !== undefined) {
-            contactRec.setCurrentSublistValue({ sublistId: 'addressbook', fieldId: 'defaultshipping', value: addr.defaultShipping });
-        }
-        if (addr.defaultBilling !== undefined) {
-            contactRec.setCurrentSublistValue({ sublistId: 'addressbook', fieldId: 'defaultbilling', value: addr.defaultBilling });
-        }
-        if (addr.label) {
-            contactRec.setCurrentSublistValue({ sublistId: 'addressbook', fieldId: 'label', value: addr.label });
-        }
-
-        // get the address subrecord
-        const addrSubrecord = contactRec.getCurrentSublistSubrecord({ sublistId: 'addressbook', fieldId: 'addressbookaddress' });
-
-        if (addr.attention) addrSubrecord.setValue({ fieldId: 'attention', value: addr.attention });
-        if (addr.addressee) addrSubrecord.setValue({ fieldId: 'addressee', value: addr.addressee });
-        if (addr.phone) addrSubrecord.setValue({ fieldId: 'addrphone', value: addr.phone });
-        if (addr.addr1) addrSubrecord.setValue({ fieldId: 'addr1', value: addr.addr1 });
-        if (addr.addr2) addrSubrecord.setValue({ fieldId: 'addr2', value: addr.addr2 });
-        if (addr.city) addrSubrecord.setValue({ fieldId: 'city', value: addr.city });
-        if (addr.state) addrSubrecord.setValue({ fieldId: 'state', value: addr.state });
-        if (addr.zip) addrSubrecord.setValue({ fieldId: 'zip', value: addr.zip });
-        if (addr.country) addrSubrecord.setValue({ fieldId: 'country', value: addr.country });
-
-        contactRec.commitLine({ sublistId: 'addressbook' });
-        log.debug('Address Added', { addressee: addr.addressee, city: addr.city });
+    const toBoolean = (val) => {
+        return val === true || val === 'T' || val === 'true' || val === '1' || val === 1;
     };
+
+    if (addr.defaultShipping !== undefined) {
+        log.debug('addr.defaultShipping', addr.defaultShipping);
+        contactRec.setCurrentSublistValue({
+            sublistId: 'addressbook',
+            fieldId: 'defaultshipping',
+            value: toBoolean(addr.defaultShipping)
+        });
+    }
+
+    if (addr.defaultBilling !== undefined) {
+        log.debug('addr.defaultBilling', addr.defaultBilling);
+        contactRec.setCurrentSublistValue({
+            sublistId: 'addressbook',
+            fieldId: 'defaultbilling',
+            value: toBoolean(addr.defaultBilling)
+        });
+    }
+
+    if (addr.label) {
+        contactRec.setCurrentSublistValue({
+            sublistId: 'addressbook',
+            fieldId: 'label',
+            value: addr.label
+        });
+    }
+
+    const addrSubrecord = contactRec.getCurrentSublistSubrecord({
+        sublistId: 'addressbook',
+        fieldId: 'addressbookaddress'
+    });
+
+    if (addr.attention) addrSubrecord.setValue({ fieldId: 'attention', value: addr.attention });
+    if (addr.addressee) addrSubrecord.setValue({ fieldId: 'addressee', value: addr.addressee });
+    if (addr.phone) addrSubrecord.setValue({ fieldId: 'addrphone', value: addr.phone });
+    if (addr.addr1) addrSubrecord.setValue({ fieldId: 'addr1', value: addr.addr1 });
+    if (addr.addr2) addrSubrecord.setValue({ fieldId: 'addr2', value: addr.addr2 });
+    if (addr.city) addrSubrecord.setValue({ fieldId: 'city', value: addr.city });
+    if (addr.state) addrSubrecord.setValue({ fieldId: 'state', value: addr.state });
+    if (addr.zip) addrSubrecord.setValue({ fieldId: 'zip', value: addr.zip });
+    if (addr.country) addrSubrecord.setValue({ fieldId: 'country', value: addr.country });
+
+    contactRec.commitLine({ sublistId: 'addressbook' });
+    log.debug('Address Added', { addressee: addr.addressee, city: addr.city });
+};
 
 
     return {
