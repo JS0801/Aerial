@@ -9,9 +9,6 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
     const getAttachments = (request) => {
 
         try {
-
-          log.debug('request', request)
-
             const soId = request.tranId;
             log.debug('soId', soId);
 
@@ -21,9 +18,6 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
                     message: 'tranId is required'
                 };
             }
-
-            
-
             let attachments = [];
 
             const salesorderSearchObj = search.create({
@@ -137,6 +131,11 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
             if (request.opportunityExternalId) {
                 log.debug('Creating Contact')
                 return createContactsForOpportunity(request);
+            }
+
+            if (request.tranId) {
+                log.debug('Fetching Document')
+                return getAttachments(request);
             }
 
             return { success: false, message: 'Either contactInternalId or opportunityExternalId is required' };
@@ -337,7 +336,7 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
 
 
     return {
-        get: getAttachments,
+       // get: getAttachments,
         post: handlePost
     };
 
