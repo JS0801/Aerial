@@ -148,112 +148,229 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
 
     // ─── Create contacts and attach to opportunity ───
     const createContactsForOpportunity = (request) => {
-        const oppExternalId = request.opportunityExternalId;
-        log.debug('oppExternalId', oppExternalId)
-        const contacts = request.contacts || [];
+    const oppExternalId = request.opportunityExternalId;
+    const contacts = request.contacts || [];
 
-        if (!contacts.length) {
-            return { success: false, message: 'contacts array is required' };
-        }
+    log.debug('oppExternalId', oppExternalId);
 
-        // lookup opportunity by externalid to get internal id and parent company
-        const oppSearch = search.create({
-            type: 'opportunity',
-            filters: [['externalid', 'anyof', oppExternalId]],
-            columns: ['internalid', 'entity']
-        });
+    if (!oppExternalId) {
+        return { success: false, message: 'opportunityExternalId is required' };
+    }
 
-        let oppId = null;
-        let companyId = null;
+    if (!contacts.length) {
+        return { success: false, message: 'contacts array is required' };
+    }
 
-        oppSearch.run().each(result => {
-            oppId = result.getValue('internalid');
-            companyId = result.getValue('entity');
-            return false; // first result only
-        });
+    // lookup opportunity by external id
+    const oppSearch = search.create({
+        type: 'opportunity',
+        filters: [
+            ['externalidstring', 'is', oppExternalId]
+        ],
+        columns: ['internalid', 'entity']
+    });
 
-        log.debug('Opportunity Lookup', { oppId: oppId, companyId: companyId });
+    let oppId = null;
+    let companyId = null;
 
-        if (!oppId) {
-            return { success: false, message: 'Opportunity not found for externalId: ' + oppExternalId };
-        }
+    oppSearch.run().each(result => {
+        oppId = result.getValue({ name: 'internalid' });
+        companyId = result.getValue({ name: 'entity' });
+        return false;
+    });
 
-        let results = [];
+    log.debug('Opportunity Lookup', {
+        oppId: oppId,
+        companyId: companyId
+    });
 
-        contacts.forEach(contact => {
-            try {
-                const contactRec = record.create({ type: record.Type.CONTACT });
+    if (!oppId) {
+        return {
+            success: false,
+            message: 'Opportunity not found for externalId: ' + oppExternalId
+        };
+    }
 
-                // set company so contact is linked to the customer
-                if (companyId) {
-                    contactRec.setValue({ fieldId: 'company', value: companyId });
-                }
+    const results = [];
+
+    for (let i = 0; i < contacts.length; i++) {
+        const contact = contacts[i];
+
+        try {
+            let contactId = null;
+            let isUpdate = false;
+
+            // find existing contact by external id
+            if (contact.externalId) {
+                const contactSearch = search.create({
+                    type: search.Type.CONTACT,
+                    filters: [
+                        ['externalidstring', 'is', contact.externalId]
+                    ],
+                    columns: ['internalid']
+                });
+
+                contactSearch.run().each(result => {
+                    contactId = result.getValue({ name: 'internalid' });
+                    return false;
+                });
+            }
+
+            let contactRec;
+
+            if (contactId) {
+                isUpdate = true;
+                contactRec = record.load({
+                    type: record.Type.CONTACT,
+                    id: contactId,
+                    isDynamic: true
+                });
+                log.debug('Existing Contact Found', {
+                    externalId: contact.externalId,
+                    contactId: contactId
+                });
+            } else {
+                contactRec = record.create({
+                    type: record.Type.CONTACT,
+                    isDynamic: true
+                });
+                log.debug('Creating New Contact', {
+                    externalId: contact.externalId
+                });
 
                 if (contact.externalId) {
-                    contactRec.setValue({ fieldId: 'externalid', value: contact.externalId });
-                }
-                if (contact.firstName) {
-                    contactRec.setValue({ fieldId: 'firstname', value: contact.firstName });
-                }
-                if (contact.lastName) {
-                    contactRec.setValue({ fieldId: 'lastname', value: contact.lastName });
-                }
-                if (contact.title) {
-                    contactRec.setValue({ fieldId: 'title', value: contact.title });
-                }
-                if (contact.email) {
-                    contactRec.setValue({ fieldId: 'email', value: contact.email });
-                }
-                if (contact.phone) {
-                    contactRec.setValue({ fieldId: 'phone', value: contact.phone });
-                }
-                if (contact.mobile) {
-                    contactRec.setValue({ fieldId: 'mobilephone', value: contact.mobile });
-                }
-
-                var contactId = contactRec.save({ enableSourcing: false, ignoreMandatoryFields: true });
-                const contactRecord = record.load({ type: record.Type.CONTACT, id: contactId, isDynamic: true });
-                log.debug('Loaded Contact', { contactId: contactId });
-
-                // add addresses if provided
-                if (contact.addresses && contact.addresses.length) {
-                    contact.addresses.forEach(addr => {
-                        addAddressToContact(contactRecord, addr);
+                    contactRec.setValue({
+                        fieldId: 'externalid',
+                        value: contact.externalId
                     });
                 }
+            }
 
-                contactId = contactRecord.save({ enableSourcing: false, ignoreMandatoryFields: true });
-                log.debug('Contact Created', { contactId: contactId, name: contact.firstName + ' ' + contact.lastName });
+            // set/update company
+            if (companyId) {
+                contactRec.setValue({
+                    fieldId: 'company',
+                    value: companyId
+                });
+            }
 
-                // attach contact to opportunity
+            if (contact.firstName !== undefined && contact.firstName !== null) {
+                contactRec.setValue({
+                    fieldId: 'firstname',
+                    value: contact.firstName
+                });
+            }
+
+            if (contact.lastName !== undefined && contact.lastName !== null) {
+                contactRec.setValue({
+                    fieldId: 'lastname',
+                    value: contact.lastName
+                });
+            }
+
+            if (contact.title !== undefined && contact.title !== null) {
+                contactRec.setValue({
+                    fieldId: 'title',
+                    value: contact.title
+                });
+            }
+
+            if (contact.email !== undefined && contact.email !== null) {
+                contactRec.setValue({
+                    fieldId: 'email',
+                    value: contact.email
+                });
+            }
+
+            if (contact.phone !== undefined && contact.phone !== null) {
+                contactRec.setValue({
+                    fieldId: 'phone',
+                    value: contact.phone
+                });
+            }
+
+            if (contact.mobile !== undefined && contact.mobile !== null) {
+                contactRec.setValue({
+                    fieldId: 'mobilephone',
+                    value: contact.mobile
+                });
+            }
+
+            contactId = contactRec.save({
+                enableSourcing: false,
+                ignoreMandatoryFields: true
+            });
+
+            log.debug(isUpdate ? 'Contact Updated' : 'Contact Created', {
+                contactId: contactId,
+                externalId: contact.externalId
+            });
+
+            // load again only if addresses need to be added
+            if (contact.addresses && contact.addresses.length) {
+                const contactWithAddress = record.load({
+                    type: record.Type.CONTACT,
+                    id: contactId,
+                    isDynamic: true
+                });
+
+                for (let j = 0; j < contact.addresses.length; j++) {
+                    addAddressToContact(contactWithAddress, contact.addresses[j]);
+                }
+
+                contactId = contactWithAddress.save({
+                    enableSourcing: false,
+                    ignoreMandatoryFields: true
+                });
+
+                log.debug('Addresses Updated', {
+                    contactId: contactId,
+                    addressCount: contact.addresses.length
+                });
+            }
+
+            // attach contact to opportunity
+            try {
                 record.attach({
                     record: { type: 'contact', id: contactId },
                     to: { type: 'opportunity', id: oppId }
                 });
-                log.debug('Contact Attached', { contactId: contactId, oppId: oppId });
 
-                results.push({
-                    externalId: contact.externalId,
+                log.debug('Contact Attached to Opportunity', {
                     contactId: contactId,
-                    success: true
+                    oppId: oppId
                 });
-
-            } catch (e) {
-                log.error('Contact Create Error', e);
-                results.push({
-                    externalId: contact.externalId,
-                    success: false,
-                    message: e.message
-                });
+            } catch (attachErr) {
+                log.error('Attach Error', attachErr);
             }
-        });
 
-        return {
-            success: true,
-            opportunityId: oppId,
-            results: results
-        };
+            results.push({
+                externalId: contact.externalId,
+                contactId: contactId,
+                action: isUpdate ? 'updated' : 'created',
+                success: true
+            });
+
+        } catch (e) {
+            log.error('Contact Create/Update Error', {
+                externalId: contact.externalId,
+                error: e
+            });
+
+            results.push({
+                externalId: contact.externalId,
+                success: false,
+                message: e.message
+            });
+        }
+    }
+
+    return {
+        success: true,
+        opportunityId: oppId,
+        results: results
     };
+};
 
     // ─── Update addresses on existing contact ───
     const updateContactAddresses = (request) => {
