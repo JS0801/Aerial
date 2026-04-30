@@ -19,6 +19,7 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
                 };
             }
             let attachments = [];
+            const MAX_FILE_SIZE = 9.99 * 1024 * 1024;
 
             const salesorderSearchObj = search.create({
                 type: "transaction",
@@ -75,15 +76,37 @@ define(['N/search', 'N/file', 'N/log', 'N/record'], (search, file, log, record) 
 
                         const fileObj = file.load({ id: fileId });
 
+                        const fileSize = Number(fileObj.size || 0);
+                        const fileSizeMB = fileSize / 1024 / 1024;
+
+                    if (fileSize > MAX_FILE_SIZE) {
+
                         attachments.push({
                             fileId: fileId,
                             name: fileName,
                             modified: modified,
                             fileType: fileObj.fileType,
-                            size: fileObj.size,
+                            size: fileSize,
+                            sizeMB: fileSizeMB.toFixed(2),
+                            url: fileObj.url,
+                            message: "File size is more than 9.99 MB. File content cannot be returned due to NetSuite file content size limitation."
+                        });
+
+                    } else {
+
+                        attachments.push({
+                            fileId: fileId,
+                            name: fileName,
+                            modified: modified,
+                            fileType: fileObj.fileType,
+                            size: fileSize,
+                            sizeMB: fileSizeMB.toFixed(2),
                             url: fileObj.url,
                             content: fileObj.getContents()
                         });
+
+                    }
+
 
                     } catch (e) {
 
